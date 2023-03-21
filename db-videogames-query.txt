@@ -1,0 +1,273 @@
+SELECT
+
+1- Selezionare tutte le software house americane (3)
+
+	select *
+	from software_houses
+	where country = 'United States';
+
+	//output = 3
+
+2- Selezionare tutti i giocatori della città di 'Rogahnland' (2)
+
+	select *
+	from players
+	where city = 'Rogahnland';
+
+	//output = 2
+
+3- Selezionare tutti i giocatori il cui nome finisce per "a" (220)
+
+	select *
+	from players
+	where name like '%a';	
+
+	//output = 220
+
+4- Selezionare tutte le recensioni scritte dal giocatore con ID = 800 (11)
+	
+	select *
+	from reviews 
+	where player_id = 800;
+
+	//output = 11
+
+
+5- Contare quanti tornei ci sono stati nell'anno 2015 (9)
+
+	select count(*)
+	from tournaments
+	where `year` = 2015;
+
+	//output = 9
+
+6- Selezionare tutti i premi che contengono nella descrizione la parola 'facere' (2)
+
+	select *
+	from awards
+	where description like '%facere%';
+
+	//output = 2
+
+7- Selezionare tutti i videogame che hanno la categoria 2 (FPS) o 6 (RPG), mostrandoli una sola volta (del videogioco vogliamo solo l'ID) (287)
+
+
+	select distinct videogame_id
+	from category_videogame
+	where category_id = 2 or category_id = 6;
+
+	//output = 287
+
+8- Selezionare tutte le recensioni con voto compreso tra 2 e 4 (2947)
+
+	select *
+	from reviews
+	where rating between 2 and 4;
+
+	//output = 2947
+
+9- Selezionare tutti i dati dei videogiochi rilasciati nell'anno 2020 (46)
+
+	select *
+	from videogames
+	where year(release_date) = 2020;
+
+	//output = 46
+
+10- Selezionare gli id dei videogame che hanno ricevuto almeno una recensione da 4 stelle, mostrandoli una sola volta (443)
+
+	select distinct videogame_id
+	from reviews
+	where rating  = 5;
+
+	//output = 443
+
+
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+GROUP BY
+
+1- Contare quante software house ci sono per ogni paese (3)
+
+	select count(id)
+	from software_houses
+	group by country;
+
+	//output = 3
+
+
+2- Contare quante recensioni ha ricevuto ogni videogioco (del videogioco vogliamo solo l'ID) (500)
+
+	select count(id) as number_reviews, videogame_id
+	from reviews
+	group by videogame_id;
+
+	//output = 500
+
+3- Contare quanti videogiochi hanno ciascuna classificazione PEGI (della classificazione PEGI vogliamo solo l'ID) (13)
+
+	select count(videogame_id), pegi_label_id
+	from pegi_label_videogame
+	group by pegi_label_id;
+
+	//output = 13
+
+4- Mostrare il numero di videogiochi rilasciati ogni anno (11)
+
+	select count(id) as number_videogames, year(release_date) as release_year
+	from videogames
+	group by year(release_date);
+
+	//output = 11
+
+5- Contare quanti videogiochi sono disponbiili per ciascun device (del device vogliamo solo l'ID) (7)
+
+	select count(videogame_id) as number_videogames, device_id
+	from device_videogame
+	group by device_id;
+
+	//output = 7
+
+6- Ordinare i videogame in base alla media delle recensioni (del videogioco vogliamo solo l'ID) (500)
+
+	select avg(rating) as media, videogame_id
+	from reviews
+	group by videogame_id order by media desc;
+
+	//output = 500
+
+------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+JOIN
+
+1- Selezionare i dati di tutti giocatori che hanno scritto almeno una recensione, mostrandoli una sola volta (996)
+
+	select distinct players.*
+	from players
+	inner join reviews 
+	on reviews.player_id = players.id;
+
+	//output = 996
+
+2- Sezionare tutti i videogame dei tornei tenuti nel 2016, mostrandoli una sola volta (226)
+
+	select distinct videogames.*
+	from videogames
+	inner join tournament_videogame
+		on tournament_videogame.videogame_id = videogames.id 
+	inner join tournaments
+		on tournaments.id = tournament_videogame.tournament_id
+	where tournaments.`year` = 2016;
+
+	//output = 226
+
+
+3- Mostrare le categorie di ogni videogioco (1718)
+
+	SELECT categories.name, videogames.name
+	FROM categories
+	JOIN category_videogame
+    		ON categories.id = category_videogame.category_id 
+	JOIN videogames
+    		ON videogames.id = category_videogame.videogame_id;
+
+	//output = 1718
+
+
+4- Selezionare i dati di tutte le software house che hanno rilasciato almeno un gioco dopo il 2020, mostrandoli una sola volta (6)
+
+	select distinct software_houses.*
+	from software_houses 
+	inner join videogames
+		on software_houses.id = videogames.software_house_id
+	where year(videogames.release_date) > 2020;
+
+	//output = 6
+
+
+5- Selezionare i premi ricevuti da ogni software house per i videogiochi che ha prodotto (55)
+
+	select awards.name as awards_name,  videogames.name as videogames_name, software_houses.name as softwareHouse_name
+	from awards
+	inner join award_videogame
+		on award_videogame.award_id = awards.id
+	inner join videogames 
+		on videogames.id = award_videogame.videogame_id 
+	inner join software_houses
+		on software_houses.id = videogames.software_house_id;
+
+	//output = 55
+
+
+6- Selezionare categorie e classificazioni PEGI dei videogiochi che hanno ricevuto recensioni da 4 e 5 stelle, mostrandole una sola volta (3363)
+
+	select distinct v.name as videogames_name, c.name as categories_name, pl.name as pegi_name
+	from categories c
+	inner join category_videogame cv 
+		on cv.category_id = c.id
+	inner join videogames v 
+		on v.id = cv.videogame_id 
+	inner join reviews r 
+		on r.videogame_id = v.id
+	inner join pegi_label_videogame plv 
+		on plv.videogame_id = v.id 
+	inner join pegi_labels pl 
+		on pl.id = plv.pegi_label_id  
+	where r.rating = 4 or r.rating = 5;
+
+	//output = 3363
+
+
+7- Selezionare quali giochi erano presenti nei tornei nei quali hanno partecipato i giocatori il cui nome inizia per 'S' (474)
+
+	select distinct v.*
+	from videogames v 
+	inner join tournament_videogame tv 
+		on tv.videogame_id = v.id 
+	inner join tournaments t 
+		on t.id = tv.tournament_id 
+	inner join player_tournament pt 
+		on pt.tournament_id = t.id 
+	inner join players p 
+		on p.id = pt.player_id 
+	where p.name like 'S%';
+
+	//output = 474
+
+8- Selezionare le città in cui è stato giocato il gioco dell'anno del 2018 (36)
+
+	select t.city 
+	from tournaments t 
+	inner join tournament_videogame tv 
+		on tv.tournament_id = t.id 
+	inner join videogames v 
+		on v.id = tv.videogame_id 
+	inner join award_videogame av 
+		on av.videogame_id = v.id 
+	inner join awards a 
+		on a.id = av.award_id 
+	where a.name = 'gioco dell\'anno' and av.`year`  = 2018;
+
+	//output = 36
+
+
+9- Selezionare i giocatori che hanno giocato al gioco più atteso del 2018 in un torneo del 2019 (3306)
+
+	select p.*
+	from players p 
+	inner join player_tournament pt 
+		on pt.player_id = p.id 
+	inner join tournaments t 
+		on t.id = pt.tournament_id 
+	inner join tournament_videogame tv 
+		on tv.tournament_id = t.id 
+	inner join videogames v 
+		on v.id = tv.videogame_id 
+	inner  join award_videogame av 
+		on av.videogame_id = v.id 
+	inner join awards a 
+		on a.id = av.award_id 
+	where a.name like '%gioco più atteso%' and av.`year` = 2018  and t.`year` = 2019;
+
+	//output = 3306
